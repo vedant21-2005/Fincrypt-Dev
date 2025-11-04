@@ -36,20 +36,15 @@ export default class Voting extends Component {
       },
     };
   }
+
   componentDidMount = async () => {
-    // refreshing once
     if (!window.location.hash) {
       window.location = window.location + "#loaded";
       window.location.reload();
     }
     try {
-      // Get network provider and web3 instance.
       const web3 = await getWeb3();
-
-      // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
-
-      // Get the contract instance.
       const networkId = await web3.eth.net.getId();
       const deployedNetwork = Election.networks[networkId];
       const instance = new web3.eth.Contract(
@@ -57,31 +52,21 @@ export default class Voting extends Component {
         deployedNetwork && deployedNetwork.address
       );
 
-      // Set web3, accounts, and contract to the state, and then proceed with an
-      // example of interacting with the contract's methods.
       this.setState({
-        web3: web3,
+        web3,
         ElectionInstance: instance,
         account: accounts[0],
       });
 
-      // Get total number of candidates
-      const candidateCount = await this.state.ElectionInstance.methods
-        .getTotalCandidate()
-        .call();
-      this.setState({ candidateCount: candidateCount });
+      const candidateCount = await instance.methods.getTotalCandidate().call();
+      this.setState({ candidateCount });
 
-      // Get start and end values
-      const start = await this.state.ElectionInstance.methods.getStart().call();
-      this.setState({ isElStarted: start });
-      const end = await this.state.ElectionInstance.methods.getEnd().call();
-      this.setState({ isElEnded: end });
+      const start = await instance.methods.getStart().call();
+      const end = await instance.methods.getEnd().call();
+      this.setState({ isElStarted: start, isElEnded: end });
 
-      // Loading Candidates details
-      for (let i = 1; i <= this.state.candidateCount; i++) {
-        const candidate = await this.state.ElectionInstance.methods
-          .candidateDetails(i - 1)
-          .call();
+      for (let i = 0; i < candidateCount; i++) {
+        const candidate = await instance.methods.candidateDetails(i).call();
         this.state.candidates.push({
           id: candidate.candidateId,
           header: candidate.header,
@@ -90,10 +75,7 @@ export default class Voting extends Component {
       }
       this.setState({ candidates: this.state.candidates });
 
-      // Loading current voter
-      const voter = await this.state.ElectionInstance.methods
-        .voterDetails(this.state.account)
-        .call();
+      const voter = await instance.methods.voterDetails(accounts[0]).call();
       this.setState({
         currentVoter: {
           address: voter.voterAddress,
@@ -105,16 +87,10 @@ export default class Voting extends Component {
         },
       });
 
-      // Admin account and verification
-      const admin = await this.state.ElectionInstance.methods.getAdmin().call();
-      if (this.state.account === admin) {
-        this.setState({ isAdmin: true });
-      }
+      const admin = await instance.methods.getAdmin().call();
+      if (accounts[0] === admin) this.setState({ isAdmin: true });
     } catch (error) {
-      // Catch any errors for any of the above operations.
-      alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`
-      );
+      alert("Failed to load Web3, accounts, or contract.");
       console.error(error);
     }
   };
@@ -126,26 +102,26 @@ export default class Voting extends Component {
         .send({ from: this.state.account, gas: 1000000 });
       window.location.reload();
     };
+
     const confirmVote = (id, header) => {
-      var r = window.confirm(
-        "Vote for " + header + " with Id " + id + ".\nAre you sure?"
+      const r = window.confirm(
+        `Vote for ${header} (ID: ${id}).\nAre you sure?`
       );
-      if (r === true) {
-        castVote(id);
-      }
+      if (r) castVote(id);
     };
+
     return (
-      <div className="container-item">
+      <div className="card candidate-card" key={candidate.id}>
         <div className="candidate-info">
-          <h2>
+          <h3>
             {candidate.header} <small>#{candidate.id}</small>
-          </h2>
+          </h3>
           <p className="slogan">{candidate.slogan}</p>
         </div>
         <div className="vote-btn-container">
           <button
             onClick={() => confirmVote(candidate.id, candidate.header)}
-            className="vote-bth"
+            className="vote-btn"
             disabled={
               !this.state.currentVoter.isRegistered ||
               !this.state.currentVoter.isVerified ||
@@ -164,7 +140,9 @@ export default class Voting extends Component {
       return (
         <>
           {this.state.isAdmin ? <NavbarAdmin /> : <Navbar />}
-          <center>Loading Web3, accounts, and contract...</center>
+          <div className="loading-card">
+            <h3>Loading Web3, accounts, and contract...</h3>
+          </div>
         </>
       );
     }
@@ -172,93 +150,64 @@ export default class Voting extends Component {
     return (
       <>
         {this.state.isAdmin ? <NavbarAdmin /> : <Navbar />}
-        <div>
+
+        <div className="home-wrapper">
           {!this.state.isElStarted && !this.state.isElEnded ? (
             <NotInit />
           ) : this.state.isElStarted && !this.state.isElEnded ? (
             <>
-              {this.state.currentVoter.isRegistered ? (
-                this.state.currentVoter.isVerified ? (
-                  this.state.currentVoter.hasVoted ? (
-                    <div className="container-item success">
-                      <div>
-                        <strong>You've casted your vote.</strong>
-                        <p />
-                        <center>
-                          <Link
-                            to="/Results"
-                            style={{
-                              color: "black",
-                              textDecoration: "underline",
-                            }}
-                          >
-                            See Results
-                          </Link>
-                        </center>
+              <div className="card status-card">
+                {this.state.currentVoter.isRegistered ? (
+                  this.state.currentVoter.isVerified ? (
+                    this.state.currentVoter.hasVoted ? (
+                      <div className="success-card">
+                        <h3>You’ve already cast your vote.</h3>
+                        <Link to="/Results" className="results-link">
+                          View Results
+                        </Link>
                       </div>
-                    </div>
+                    ) : (
+                      <p>Go ahead and cast your vote.</p>
+                    )
                   ) : (
-                    <div className="container-item info">
-                      <center>Go ahead and cast your vote.</center>
-                    </div>
+                    <p className="attention-card">
+                      Please wait for admin verification.
+                    </p>
                   )
                 ) : (
-                  <div className="container-item attention">
-                    <center>Please wait for admin to verify.</center>
+                  <div className="attention-card">
+                    <p>You’re not registered. Please register first.</p>
+                    <Link to="/Registration" className="results-link">
+                      Go to Registration Page
+                    </Link>
                   </div>
-                )
-              ) : (
-                <>
-                  <div className="container-item attention">
-                    <center>
-                      <p>You're not registered. Please register first.</p>
-                      <br />
-                      <Link
-                        to="/Registration"
-                        style={{ color: "black", textDecoration: "underline" }}
-                      >
-                        Registration Page
-                      </Link>
-                    </center>
-                  </div>
-                </>
-              )}
-              <div className="container-main">
-                <h2>Candidates</h2>
-                <small>Total candidates: {this.state.candidates.length}</small>
+                )}
+              </div>
+
+              <div className="card candidate-list-card">
+                <h3>Candidates</h3>
+                <small className="total-voters-text">
+                  Total Candidates: {this.state.candidates.length}
+                </small>
                 {this.state.candidates.length < 1 ? (
-                  <div className="container-item attention">
-                    <center>Not one to vote for.</center>
+                  <div className="attention-card">
+                    <p>No candidates added yet.</p>
                   </div>
                 ) : (
-                  <>
-                    {this.state.candidates.map(this.renderCandidates)}
-                    <div
-                      className="container-item"
-                      style={{ border: "1px solid black" }}
-                    >
-                      <center>That is all.</center>
-                    </div>
-                  </>
+                  this.state.candidates.map(this.renderCandidates)
                 )}
               </div>
             </>
-          ) : !this.state.isElStarted && this.state.isElEnded ? (
-            <>
-              <div className="container-item attention">
-                <center>
-                  <h3>The Election ended.</h3>
-                  <br />
-                  <Link
-                    to="/Results"
-                    style={{ color: "black", textDecoration: "underline" }}
-                  >
-                    See results
-                  </Link>
-                </center>
+          ) : (
+            this.state.isElEnded && (
+              <div className="card attention-card">
+                <h3>The Election has ended.</h3>
+                <Link to="/Results" className="results-link">
+                  See Results
+                </Link>
               </div>
-            </>
-          ) : null}
+            )
+          )}
         </div>
       </>
     );

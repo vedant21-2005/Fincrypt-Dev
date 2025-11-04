@@ -34,36 +34,46 @@ function LoginPage() {
   };
 
   return (
-    <div className="login-page">
-      <h1 id="login">Login</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="officialEmail">Email:</label>
-        <input
-          type="officialEmail"
-          id="officialEmail"
-          name="officialEmail"
-          value={officialEmail}
-          onChange={(event) => setEmail(event.target.value)}
-        />
-        <br />
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-        <br />
-        <button type="submit">Login</button>
-      </form>
-      <p>
-        Don't have an account?{" "}
-        <Link to="/Signup" className="btn btn-default border w-100 bg-light rounded-0 text-decoration-none">
-          Register here
-        </Link>
-      </p>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2 className="auth-title">Welcome Back</h2>
+        <p className="auth-subtitle">Login to your iVote account</p>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <label htmlFor="officialEmail">Email Address</label>
+          <input
+            type="email"
+            id="officialEmail"
+            name="officialEmail"
+            placeholder="Enter your email"
+            value={officialEmail}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+
+          <button type="submit" className="btn-primary">Login</button>
+        </form>
+
+        <p className="auth-footer">
+          Don’t have an account?{' '}
+          <Link to="/Signup" className="link-register">
+            Register here
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
+
 export default LoginPage;

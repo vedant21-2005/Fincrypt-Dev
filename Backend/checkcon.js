@@ -1,7 +1,7 @@
 const MongoClient = require('mongodb').MongoClient;
 
 const url = 'mongodb://localhost:27017';
-const dbName = 'myproject';
+const dbName = 'voting';
 
 MongoClient.connect(url, (err, client) => {
     if (err) {

@@ -22,12 +22,13 @@ function Signup() {
       alert('Passwords do not match');
       return;
     }
-    axios.post('http://127.0.0.1:5001/register', userData)
+    axios
+      .post('http://127.0.0.1:5001/register', userData)
       .then((response) => {
         alert(response.data.message);
         setUserData({});
         setConfirmPassword('');
-        history.push('/');  // on successful registration, redirect to login page
+        history.push('/'); // redirect to login page
       })
       .catch((error) => {
         console.error(error);
@@ -36,54 +37,92 @@ function Signup() {
   };
 
   const handleLoginRedirect = () => {
-    history.push('/');  // redirect to login page
+    history.push('/'); // redirect to login page
   };
 
   return (
-    <div className="signup-container">
-      <h1 id="signup">SignUp</h1>
-      <form onSubmit={handleFormSubmit}>
-        <label>
-          Official Email:
-          <input type="email" name="officialEmail" onChange={handleInputChange} />
-        </label>
-        <label>
-          Student ID:
-          <input type="text" name="studentID" onChange={handleInputChange} />
-        </label>
-        <label>
-          Name:
-          <input type="text" name="name" onChange={handleInputChange} />
-        </label>
-        <label>
-          Course:
-          <input type="text" name="course" onChange={handleInputChange} />
-        </label>
-        <label>
-          University Rollno:
-          <input type="text" name="universityRollno" onChange={handleInputChange} />
-        </label>
-        <label>
-          New Password:
-          <input type="password" name="newPassword" onChange={handleInputChange} />
-        </label>
-        <label>
-          Confirm new Password:
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2 className="auth-title">Create Your Account</h2>
+        <p className="auth-subtitle">Register to access secure online voting</p>
+
+        <form onSubmit={handleFormSubmit} className="auth-form">
+          <label>Official Email</label>
+          <input
+            type="email"
+            name="officialEmail"
+            placeholder="Enter your official email"
+            onChange={handleInputChange}
+            required
+          />
+
+          <label>Student ID</label>
+          <input
+            type="text"
+            name="studentID"
+            placeholder="Enter your student ID"
+            onChange={handleInputChange}
+            required
+          />
+
+          <label>Name</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter your full name"
+            onChange={handleInputChange}
+            required
+          />
+
+          <label>Course</label>
+          <input
+            type="text"
+            name="course"
+            placeholder="Enter your course"
+            onChange={handleInputChange}
+            required
+          />
+
+          <label>University Roll Number</label>
+          <input
+            type="text"
+            name="universityRollno"
+            placeholder="Enter your roll number"
+            onChange={handleInputChange}
+            required
+          />
+
+          <label>New Password</label>
+          <input
+            type="password"
+            name="newPassword"
+            placeholder="Create a password"
+            onChange={handleInputChange}
+            required
+          />
+
+          <label>Confirm Password</label>
           <input
             type="password"
             name="confirmPassword"
+            placeholder="Confirm your password"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}
+            required
           />
-        </label>
-        <button type="submit">Register</button>
-      </form>
-      <p>
-        Already registered?
-        <button type="back" onClick={handleLoginRedirect}>
-          Login
-        </button>
-      </p>
+
+          <button type="submit" className="btn-primary">
+            Register
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          Already registered?{' '}
+          <button type="button" onClick={handleLoginRedirect} className="link-login">
+            Login here
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

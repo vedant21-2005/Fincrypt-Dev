@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 import Navbar from "./Navbar/Navigation";
 import NavbarAdmin from "./Navbar/NavigationAdmin";
 import UserHome from "./UserHome";
-import StartEnd from "./StartEnd";
 import ElectionStatus from "./ElectionStatus";
 
 // Contract
@@ -17,7 +16,6 @@ import Election from "../contracts/Election.json";
 // CSS
 import "./Home.css";
 
-// const buttonRef = React.createRef();
 export default class Home extends Component {
   constructor(props) {
     super(props);
@@ -32,20 +30,46 @@ export default class Home extends Component {
     };
   }
 
-  // refreshing once
-  componentDidMount = async () => {
+  // Load blockchain data
+  async componentDidMount() {
     if (!window.location.hash) {
       window.location = window.location + "#loaded";
       window.location.reload();
     }
     try {
-      // Get network provider and web3 instance.
       const web3 = await getWeb3();
+      const chainId = await window.ethereum.request({ method: "eth_chainId" });
 
-      // Use web3 to get the user's accounts.
+      // Ensure Ganache local chain
+      if (chainId !== "0x539") {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x539" }],
+          });
+          window.location.reload();
+        } catch (switchError) {
+          if (switchError.code === 4902) {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: "0x539",
+                  chainName: "Ganache Local",
+                  rpcUrls: ["http://127.0.0.1:7545"],
+                  nativeCurrency: {
+                    name: "Ether",
+                    symbol: "ETH",
+                    decimals: 18,
+                  },
+                },
+              ],
+            });
+          }
+        }
+      }
+
       const accounts = await web3.eth.getAccounts();
-
-      // Get the contract instance.
       const networkId = await web3.eth.net.getId();
       const deployedNetwork = Election.networks[networkId];
       const instance = new web3.eth.Contract(
@@ -53,27 +77,21 @@ export default class Home extends Component {
         deployedNetwork && deployedNetwork.address
       );
 
-      // Set web3, accounts, and contract to the state, and then proceed with an
-      // example of interacting with the contract's methods.
       this.setState({
-        web3: web3,
+        web3,
         ElectionInstance: instance,
         account: accounts[0],
       });
 
-      const admin = await this.state.ElectionInstance.methods.getAdmin().call();
-      if (this.state.account === admin) {
-        this.setState({ isAdmin: true });
-      }
+      const admin = await instance.methods.getAdmin().call();
+      if (accounts[0] === admin) this.setState({ isAdmin: true });
 
-      // Get election start and end values
-      const start = await this.state.ElectionInstance.methods.getStart().call();
-      this.setState({ elStarted: start });
-      const end = await this.state.ElectionInstance.methods.getEnd().call();
-      this.setState({ elEnded: end });
+      const start = await instance.methods.getStart().call();
+      const end = await instance.methods.getEnd().call();
 
-      // Getting election details from the contract
-      const electionDetails = await this.state.ElectionInstance.methods
+      this.setState({ elStarted: start, elEnded: end });
+
+      const electionDetails = await instance.methods
         .getElectionDetails()
         .call();
 
@@ -87,21 +105,20 @@ export default class Home extends Component {
         },
       });
     } catch (error) {
-      // Catch any errors for any of the above operations.
-      alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`
-      );
+      alert(`Failed to load web3, accounts, or contract.`);
       console.error(error);
     }
-  };
-  // end election
+  }
+
+  // End election
   endElection = async () => {
     await this.state.ElectionInstance.methods
       .endElection()
       .send({ from: this.state.account, gas: 1000000 });
     window.location.reload();
   };
-  // register and start election
+
+  // Register election setup
   registerElection = async (data) => {
     await this.state.ElectionInstance.methods
       .setElectionDetails(
@@ -120,95 +137,81 @@ export default class Home extends Component {
       return (
         <>
           <Navbar />
-          <center>Loading Web3, accounts, and contract...</center>
+          <div className="home-wrapper">
+            <div className="card loading-card">
+              <h3>Loading Web3, accounts, and contract...</h3>
+            </div>
+          </div>
         </>
       );
     }
+
     return (
       <>
         {this.state.isAdmin ? <NavbarAdmin /> : <Navbar />}
-        <div className="container-main">
-          <div className="container-item center-items info">
-            Your Account: {this.state.account}
+
+        <div className="home-wrapper">
+          {/* Account Info */}
+          <div className="card account-card">
+            <h4>Your Account</h4>
+            <p>{this.state.account}</p>
           </div>
-          {!this.state.elStarted & !this.state.elEnded ? (
-            <div className="container-item info">
-              <center>
-                <h3>The election has not been initialize.</h3>
-                {this.state.isAdmin ? (
-                  <p>Set up the election.</p>
-                ) : (
-                  <p>Please wait..</p>
-                )}
-              </center>
+
+          {/* Election Status */}
+          {!this.state.elStarted && !this.state.elEnded && (
+            <div className="card status-card">
+              <h3>The election has not been initialized.</h3>
+              <p>{this.state.isAdmin ? "Set up the election." : "Please wait..."}</p>
             </div>
-          ) : null}
+          )}
         </div>
+
+        {/* Conditional Sections */}
         {this.state.isAdmin ? (
-          <>
-            <this.renderAdminHome />
-          </>
+          <this.renderAdminHome />
         ) : this.state.elStarted ? (
-          <>
-            <UserHome el={this.state.elDetails} />
-          </>
-        ) : !this.state.isElStarted && this.state.isElEnded ? (
-          <>
-            <div className="container-item attention">
-              <center>
-                <h3>The Election ended.</h3>
-                <br />
-                <Link
-                  to="/Results"
-                  style={{ color: "black", textDecoration: "underline" }}
-                >
-                  See results
-                </Link>
-              </center>
-            </div>
-          </>
+          <UserHome el={this.state.elDetails} />
+        ) : !this.state.elStarted && this.state.elEnded ? (
+          <div className="card attention-card">
+            <h3>The election has ended.</h3>
+            <Link
+              to="/Results"
+              style={{ color: "#2563eb", textDecoration: "underline" }}
+            >
+              View Results
+            </Link>
+          </div>
         ) : null}
       </>
     );
   }
 
+  // Admin setup form rendering
   renderAdminHome = () => {
-    const EMsg = (props) => {
-      return <span style={{ color: "tomato" }}>{props.msg}</span>;
-    };
+    const EMsg = (props) => <span className="error-msg">{props.msg}</span>;
 
     const AdminHome = () => {
-      // Contains of Home page for the Admin
-      const {
-        handleSubmit,
-        register,
-        formState: { errors },
-      } = useForm();
-
-      const onSubmit = (data) => {
-        this.registerElection(data);
-      };
+      const { handleSubmit, register, formState: { errors } } = useForm();
+      const onSubmit = (data) => this.registerElection(data);
 
       return (
-        <div>
+        <div className="admin-form-section">
           <form onSubmit={handleSubmit(onSubmit)}>
-            {!this.state.elStarted & !this.state.elEnded ? (
-              <div className="container-main">
-                {/* about-admin */}
-                <div className="about-admin">
+            {!this.state.elStarted && !this.state.elEnded ? (
+              <div className="admin-form">
+
+                {/* About Admin Section */}
+                <div className="admin-card">
                   <h3>About Admin</h3>
-                  <div className="container-item center-items">
-                    <div>
-                      <label className="label-home">
-                        Full Name{" "}
-                        {errors.adminFName && <EMsg msg="*required" />}
+                  <div className="admin-section">
+                    <label className="label-home">
+                      Full Name {errors.adminFName && <EMsg msg="*required" />}
+                      <div className="name-fields">
                         <input
                           className="input-home"
                           type="text"
                           placeholder="First Name"
-                          {...register("adminFName", {
-                            required: true,
-                          })}
+                          {...register("adminFName", { required: true })}
                         />
                         <input
                           className="input-home"
@@ -216,91 +219,88 @@ export default class Home extends Component {
                           placeholder="Last Name"
                           {...register("adminLName")}
                         />
-                      </label>
+                      </div>
+                    </label>
 
-                      <label className="label-home">
-                        Email{" "}
-                        {errors.adminEmail && (
-                          <EMsg msg={errors.adminEmail.message} />
-                        )}
-                        <input
-                          className="input-home"
-                          placeholder="eg. you@example.com"
-                          name="adminEmail"
-                          {...register("adminEmail", {
-                            required: "*Required",
-                            pattern: {
-                              value: /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/, // email validation using RegExp
-                              message: "*Invalid",
-                            },
-                          })}
-                        />
-                      </label>
+                    <label className="label-home">
+                      Email {errors.adminEmail && <EMsg msg="*Invalid" />}
+                      <input
+                        className="input-home"
+                        type="email"
+                        placeholder="eg. you@example.com"
+                        {...register("adminEmail", {
+                          required: "*Required",
+                          pattern: /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/,
+                        })}
+                      />
+                    </label>
 
-                      <label className="label-home">
-                        Job Title or Position{" "}
-                        {errors.adminTitle && <EMsg msg="*required" />}
-                        <input
-                          className="input-home"
-                          type="text"
-                          placeholder="eg. HR Head "
-                          {...register("adminTitle", {
-                            required: true,
-                          })}
-                        />
-                      </label>
-                    </div>
+                    <label className="label-home">
+                      Job Title or Position {errors.adminTitle && <EMsg msg="*required" />}
+                      <input
+                        className="input-home"
+                        type="text"
+                        placeholder="eg. HR Head"
+                        {...register("adminTitle", { required: true })}
+                      />
+                    </label>
                   </div>
                 </div>
-                {/* about-election */}
-                <div className="about-election">
+
+                {/* About Election Section */}
+                <div className="admin-card election-card">
                   <h3>About Election</h3>
-                  <div className="container-item center-items">
-                    <div>
-                      <label className="label-home">
-                        Election Title{" "}
-                        {errors.electionTitle && <EMsg msg="*required" />}
-                        <input
-                          className="input-home"
-                          type="text"
-                          placeholder="eg. School Election"
-                          {...register("electionTitle", {
-                            required: true,
-                          })}
-                        />
-                      </label>
-                      <label className="label-home">
-                        Organization Name{" "}
-                        {errors.organizationName && <EMsg msg="*required" />}
-                        <input
-                          className="input-home"
-                          type="text"
-                          placeholder="eg. Lifeline Academy"
-                          {...register("organizationTitle", {
-                            required: true,
-                          })}
-                        />
-                      </label>
-                    </div>
+                  <div className="admin-section">
+                    <label className="label-home">
+                      Election Title {errors.electionTitle && <EMsg msg="*required" />}
+                      <input
+                        className="input-home"
+                        type="text"
+                        placeholder="eg. School Election"
+                        {...register("electionTitle", { required: true })}
+                      />
+                    </label>
+
+                    <label className="label-home">
+                      Organization Name {errors.organizationTitle && <EMsg msg="*required" />}
+                      <input
+                        className="input-home"
+                        type="text"
+                        placeholder="eg. Lifeline Academy"
+                        {...register("organizationTitle", { required: true })}
+                      />
+                    </label>
                   </div>
                 </div>
+
+                {/* Add Candidates Notice */}
+                <div className="alert-box">
+                  <p><strong>Do not forget to add candidates.</strong></p>
+                  <p>
+                    Go to{" "}
+                    <Link to="/AddCandidate" style={{ color: "#1e40af" }}>
+                      add candidates
+                    </Link>{" "}
+                    page.
+                  </p>
+                </div>
+
+                {/* Start/End Buttons and Status */}
+                <button className="btn-start-election" type="submit">
+                  Start Election
+                </button>
+
+                <ElectionStatus
+                  elStarted={this.state.elStarted}
+                  elEnded={this.state.elEnded}
+                />
               </div>
-            ) : this.state.elStarted ? (
-              <UserHome el={this.state.elDetails} />
             ) : null}
-            <StartEnd
-              elStarted={this.state.elStarted}
-              elEnded={this.state.elEnded}
-              endElFn={this.endElection}
-            />
-            <ElectionStatus
-              elStarted={this.state.elStarted}
-              elEnded={this.state.elEnded}
-            />
           </form>
         </div>
       );
     };
+
     return <AdminHome />;
   };
 }

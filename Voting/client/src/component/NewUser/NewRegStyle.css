@@ -1,54 +1,120 @@
-.signup-container {
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 20px;
-  border: 1px solid #121212;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+/* ===============================
+   iVOTE Inspired Registration Page (Centered, not full-screen)
+================================= */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  margin: 0;
+  padding: 0;
 }
 
-label {
-  display: block;
-  margin-bottom: 10px;
+/* Outer Container */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;  /* aligns to top instead of center */
+  min-height: 100vh;
+  padding: 60px 0;          /* adds top & bottom spacing */
 }
 
-input[type="email"],
-input[type="text"],
-input[type="password"] {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 1px solid #000000;
+/* Card */
+.auth-card {
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  width: 600px;
+  text-align: center;
 }
 
-button[type="submit"] {
-  display: block;
-  margin: 0 auto;
-  background-color: #4caf50;
+/* Headings */
+.auth-title {
+  color: #1d4ed8;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.auth-subtitle {
+  color: #6b7280;
+  margin-bottom: 1.8rem;
+  font-size: 0.9rem;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.auth-form label {
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.3rem;
+}
+
+.auth-form input {
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+  border-color: #2563eb;
+}
+
+/* Button */
+.btn-primary {
+  background: #2563eb;
   color: #fff;
-  padding: 10px 20px;
+  padding: 0.8rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
+  transition: 0.3s;
 }
 
-button[type="submit"]:hover {
-  background-color: #3e8e41;
+.btn-primary:hover {
+  background: #1e40af;
 }
 
-button[type="back"] {
-  background-color: #ffffff;
-  color: #ff6c31;
-  padding: 0.5rem;
+/* Footer */
+.auth-footer {
+  margin-top: 1.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.link-login {
+  background: transparent;
   border: none;
-  border-radius: 4px;
+  color: #2563eb;
+  font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
+  transition: 0.2s;
 }
 
-button[type="back"]:hover {
-  background-color: #ffffff;
+.link-login:hover {
+  text-decoration: underline;
 }
 
-#signup {
-  color: #ff7a28;
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-card {
+    width: 90%;
+    padding: 2rem;
+  }
+
+  .auth-page {
+    padding: 40px 0;
+  }
 }

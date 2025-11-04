@@ -1,36 +1,39 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-
 import "./Navbar.css";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+
   return (
-    <nav>
-      <NavLink to="/Home" className="header">
-        <i className="fab fa-hive"></i> Home
-      </NavLink>
-      <ul
-        className="navbar-links"
-        style={{ width: "35%", transform: open ? "translateX(0px)" : "" }}
-      >
+    <nav className="navbar">
+      <div className="nav-brand">
+        <NavLink to="/Home" className="logo">
+          Home
+        </NavLink>
+      </div>
+
+      <ul className={`nav-links ${open ? "open" : ""}`}>
         <li>
-          <NavLink to="/Registration" activeClassName="nav-active">
-            <i className="far fa-registered" /> Registration
+          <NavLink to="/Registration" activeClassName="active-link">
+            Registration
           </NavLink>
         </li>
         <li>
-          <NavLink to="/Voting" activeClassName="nav-active">
-            <i className="fas fa-vote-yea" /> Voting
+          <NavLink to="/Voting" activeClassName="active-link">
+            Voting
           </NavLink>
         </li>
         <li>
-          <NavLink to="/Results" activeClassName="nav-active">
-            <i className="fas fa-poll-h" /> Results
+          <NavLink to="/Results" activeClassName="active-link">
+            Results
           </NavLink>
         </li>
       </ul>
-      <i onClick={() => setOpen(!open)} className="fas fa-bars burger-menu"></i>
+
+      <div className="burger" onClick={() => setOpen(!open)}>
+        <i className="fas fa-bars"></i>
+      </div>
     </nav>
   );
 }

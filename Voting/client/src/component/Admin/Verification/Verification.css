@@ -1,7 +1,116 @@
-.btn-verification {
-  padding: 11px;
+/* Base wrapper */
+.verification-wrapper {
+  background: linear-gradient(135deg, #3b5998, #5b7bb3);
+  min-height: 100vh;
+  padding: 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Header Card */
+.verification-header {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
   width: 100%;
-  margin-top: 11px;
-  margin-bottom: 11px;
-  float: inline-end;
+  max-width: 800px;
+  text-align: center;
+}
+
+.verification-header h2 {
+  color: #1e3a8a;
+  margin-bottom: 0.5rem;
+}
+
+.verification-header p {
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+/* Voter List Cards */
+.voter-list {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.voter-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.voter-card:hover {
+  transform: translateY(-2px);
+}
+
+.voter-card.verified {
+  border-left: 5px solid #22c55e;
+}
+
+.voter-card.unverified {
+  border-left: 5px solid #f97316;
+}
+
+/* Voter Table */
+.voter-info table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.voter-info th {
+  text-align: left;
+  color: #1e3a8a;
+  padding: 6px 0;
+  width: 30%;
+}
+
+.voter-info td {
+  color: #1e293b;
+  padding: 6px 0;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.status-badge.green {
+  background-color: #22c55e;
+}
+
+.status-badge.red {
+  background-color: #ef4444;
+}
+
+/* Approve Button */
+.btn-approve {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.4rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  display: inline-block;
+  transition: 0.2s ease-in-out;
+}
+
+.btn-approve:hover {
+  background: #1e40af;
+  transform: scale(1.03);
 }
