@@ -1,36 +1,114 @@
-.form {
-  width: fit-content;
-  margin: 5px;
-  padding: 7px;
-  margin-right: auto;
-  margin-left: auto;
-  overflow: auto;
-}
-.input-ac {
-  margin: 0.5em;
-  margin-left: 0;
-  padding: 1em;
-  display: block;
-  width: 333px;
-}
-.label-ac {
-  display: block;
-  margin: 0.1em;
-  padding: 0.5em;
-}
-.btn-add {
-  width: 25%;
-  padding: 1em;
-  float: inline-end;
-  margin: 1em;
+/* Page Wrapper */
+.add-candidate-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #3b5998, #5b7bb3);
+  min-height: 100vh;
+  padding: 3rem 1rem;
+  gap: 2rem;
 }
 
-@media all and (max-width: 400px) {
-  .input-ac,
-  .btn-add {
-    width: 100%;
-  }
-  .btn-add {
-    float: inline-start;
-  }
+/* Card */
+.candidate-card,
+.candidate-list {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Headings */
+.candidate-card h2,
+.candidate-list h3 {
+  color: #1e3a8a;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Small info text */
+.small-text {
+  text-align: center;
+  color: #475569;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Form fields */
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.label-home {
+  display: block;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.input-home {
+  display: block;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  font-size: 1rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  transition: 0.2s;
+}
+
+.input-home:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 5px rgba(37, 99, 235, 0.25);
+}
+
+/* Primary Button */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1e40af;
+}
+
+/* Candidate List */
+.candidate-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.candidate-list li {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.6rem;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.candidate-list li strong {
+  color: #1e3a8a;
+}
+
+.no-candidates {
+  text-align: center;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 10px;
 }

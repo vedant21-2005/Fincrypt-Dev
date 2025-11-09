@@ -1,72 +1,102 @@
+/* ===============================
+   Neutral Navbar (No branding)
+================================= */
+
 * {
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
-li {
-  list-style-type: none;
-}
-a {
-  text-decoration: none;
-  color: white;
-}
-nav {
-  display: flex;
-  height: 11vh;
-  background: tomato;
-  justify-content: space-around;
-  position: sticky;
-  top: 0;
-  align-items: center;
-}
-nav .header {
-  font-size: 24px;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-nav .header:hover {
-  cursor: pointer;
-}
-nav .navbar-links {
-  display: flex;
-  justify-content: space-around;
-  width: 70%;
-  cursor: pointer;
-}
-nav .navbar-links a {
-  font-size: 17px;
-  font-weight: normal;
-  cursor: pointer;
-  text-transform: capitalize;
-}
-nav .navbar-links a:hover {
-  cursor: pointer;
-  color: black;
-}
-nav .burger-menu {
-  font-size: 24px;
-  color: white;
-  cursor: pointer;
-  display: none;
-}
-.nav-active {
-  color: black;
+  font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
 }
 
-@media all and (max-width: 777px) {
-  nav .burger-menu {
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+  padding: 1.5rem;
+  background: linear-gradient(90deg, #1A3D64, #4A70A9);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  /* 🔹 add clear boundary line */
+  border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Brand / Logo */
+.nav-brand .logo {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nav-brand .logo:hover {
+  color: #e0e7ff;
+}
+
+/* Links */
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  transition: transform 0.3s ease;
+}
+
+.nav-links li a {
+  color: #e0e7ff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.nav-links li a:hover {
+  color: #ffffff;
+}
+
+/* Active link */
+.active-link {
+  border-bottom: 2px solid #ffffff;
+  padding-bottom: 2px;
+  color: #ffffff;
+}
+
+/* Burger icon */
+.burger {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #fff;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .burger {
     display: block;
   }
-  nav .navbar-links {
-    background-color: tomato;
-    display: block;
-    width: 50%;
+
+  .nav-links {
     position: absolute;
-    top: 100%;
+    top: 70px;
     left: 0;
-    padding: 0px;
-    transform: translate(-700px);
+    width: 100%;
+    background: linear-gradient(180deg, #1d4ed8, #2563eb);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-300px);
+    opacity: 0;
+    transition: all 0.3s ease;
   }
-  nav .navbar-links li {
-    padding: 25px;
-    border-top: 3px solid white;
+
+  .nav-links.open {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .nav-links li {
+    margin: 1rem 0;
   }
 }

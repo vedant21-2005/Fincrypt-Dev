@@ -1,57 +1,110 @@
-.login-page {
+/* ===============================
+   iVOTE Inspired Login Page
+================================= */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  margin: 0;
+  padding: 0;
+}
+
+/* Container */
+.auth-page {
   display: flex;
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 20px;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  background-color: #fff;
-  border: 1px solid #010101;
-  border-radius: 10px;
+  align-items: center;
+  height: 100vh;
 }
 
-.login-page h1 {
+/* Login Card */
+.auth-card {
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+  width: 360px;
+  text-align: center;
+}
+
+/* Titles */
+.auth-title {
+  color: #1d4ed8;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: #6b7280;
   margin-bottom: 2rem;
-  color: #333;
+  font-size: 0.9rem;
 }
 
-.login-page form {
+/* Form */
+.auth-form {
   display: flex;
   flex-direction: column;
-  width: 300px;
-  margin-bottom: 1rem;
-  border: #010101;
+  text-align: left;
 }
 
-.login-page label {
-  margin-bottom: 0.5rem;
-  color: #333;
+.auth-form label {
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.3rem;
 }
 
-.login-page input {
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #010101;
+.auth-form input {
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  margin-bottom: 1.2rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-.login-page button {
-  padding: 0.5rem;
-  color: #ff7a28;
-  background-color: #007bff;
+.auth-form input:focus {
+  border-color: #2563eb;
+}
+
+/* Button */
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  padding: 0.8rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
+  transition: 0.3s;
 }
 
-.login-page p {
-  color: #333;
+.btn-primary:hover {
+  background: #1e40af;
 }
 
-.login-page a {
-  color: #ff7700;
+/* Footer */
+.auth-footer {
+  margin-top: 1.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
-#login {
-  color: #ff7a28;
+
+.link-register {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link-register:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-card {
+    width: 90%;
+    padding: 2rem;
+  }
 }

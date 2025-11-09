@@ -1,13 +1,16 @@
+// Node modules
 import React, { Component } from "react";
 
+// Components
 import Navbar from "../../Navbar/Navigation";
 import NavbarAdmin from "../../Navbar/NavigationAdmin";
+import AdminOnly from "../../AdminOnly";
 
+// Blockchain
 import getWeb3 from "../../../getWeb3";
 import Election from "../../../contracts/Election.json";
 
-import AdminOnly from "../../AdminOnly";
-
+// CSS
 import "./AddCandidate.css";
 
 export default class AddCandidate extends Component {
@@ -16,7 +19,7 @@ export default class AddCandidate extends Component {
     this.state = {
       ElectionInstance: undefined,
       web3: null,
-      accounts: null,
+      account: null,
       isAdmin: false,
       header: "",
       slogan: "",
@@ -26,74 +29,53 @@ export default class AddCandidate extends Component {
   }
 
   componentDidMount = async () => {
-    // refreshing page only once
     if (!window.location.hash) {
       window.location = window.location + "#loaded";
       window.location.reload();
     }
 
     try {
-      // Get network provider and web3 instance.
       const web3 = await getWeb3();
-
-      // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
-
-      // Get the contract instance.
       const networkId = await web3.eth.net.getId();
       const deployedNetwork = Election.networks[networkId];
       const instance = new web3.eth.Contract(
         Election.abi,
         deployedNetwork && deployedNetwork.address
       );
-      // Set web3, accounts, and contract to the state, and then proceed with an
-      // example of interacting with the contract's methods.
+
       this.setState({
-        web3: web3,
+        web3,
         ElectionInstance: instance,
         account: accounts[0],
       });
 
-      // Total number of candidates
-      const candidateCount = await this.state.ElectionInstance.methods
-        .getTotalCandidate()
-        .call();
-      this.setState({ candidateCount: candidateCount });
+      const admin = await instance.methods.getAdmin().call();
+      if (accounts[0] === admin) this.setState({ isAdmin: true });
 
-      const admin = await this.state.ElectionInstance.methods.getAdmin().call();
-      if (this.state.account === admin) {
-        this.setState({ isAdmin: true });
-      }
+      const candidateCount = await instance.methods.getTotalCandidate().call();
+      this.setState({ candidateCount });
 
-      // Loading Candidates details
-      for (let i = 0; i < this.state.candidateCount; i++) {
-        const candidate = await this.state.ElectionInstance.methods
-          .candidateDetails(i)
-          .call();
+      for (let i = 0; i < candidateCount; i++) {
+        const candidate = await instance.methods.candidateDetails(i).call();
         this.state.candidates.push({
           id: candidate.candidateId,
           header: candidate.header,
           slogan: candidate.slogan,
         });
       }
-
       this.setState({ candidates: this.state.candidates });
     } catch (error) {
-      // Catch any errors for any of the above operations.
       console.error(error);
-      alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`
-      );
+      alert(`Failed to load web3, accounts, or contract.`);
     }
   };
-  updateHeader = (event) => {
-    this.setState({ header: event.target.value });
-  };
-  updateSlogan = (event) => {
-    this.setState({ slogan: event.target.value });
-  };
 
-  addCandidate = async () => {
+  updateHeader = (e) => this.setState({ header: e.target.value });
+  updateSlogan = (e) => this.setState({ slogan: e.target.value });
+
+  addCandidate = async (e) => {
+    e.preventDefault();
     await this.state.ElectionInstance.methods
       .addCandidate(this.state.header, this.state.slogan)
       .send({ from: this.state.account, gas: 1000000 });
@@ -101,105 +83,86 @@ export default class AddCandidate extends Component {
   };
 
   render() {
-    if (!this.state.web3) {
+    if (!this.state.web3)
       return (
         <>
           {this.state.isAdmin ? <NavbarAdmin /> : <Navbar />}
           <center>Loading Web3, accounts, and contract...</center>
         </>
       );
-    }
-    if (!this.state.isAdmin) {
+
+    if (!this.state.isAdmin)
       return (
         <>
           <Navbar />
-          <AdminOnly page="Add Candidate Page." />
+          <AdminOnly page="Add Candidate Page" />
         </>
       );
-    }
+
     return (
       <>
         <NavbarAdmin />
-        <div className="container-main">
-          <h2>Add a new candidate</h2>
-          <small>Total candidates: {this.state.candidateCount}</small>
-          <div className="container-item">
-            <form className="form">
-              <label className={"label-ac"}>
-                Header
+        <div className="add-candidate-wrapper">
+          <div className="card candidate-card">
+            <h2>Add a New Candidate</h2>
+            <p className="small-text">
+              Total Candidates: {this.state.candidateCount}
+            </p>
+
+            <form onSubmit={this.addCandidate}>
+              <div className="form-group">
+                <label className="label-home">Candidate Name</label>
                 <input
-                  className={"input-ac"}
+                  className="input-home"
                   type="text"
-                  placeholder="eg. Marcus"
+                  placeholder="e.g. Marcus"
                   value={this.state.header}
                   onChange={this.updateHeader}
+                  required
                 />
-              </label>
-              <label className={"label-ac"}>
-                Slogan
+              </div>
+
+              <div className="form-group">
+                <label className="label-home">Slogan</label>
                 <input
-                  className={"input-ac"}
+                  className="input-home"
                   type="text"
-                  placeholder="eg. It is what it is"
+                  placeholder="e.g. It is what it is"
                   value={this.state.slogan}
                   onChange={this.updateSlogan}
+                  required
                 />
-              </label>
+              </div>
+
               <button
-                className="btn-add"
+                className="btn-primary"
                 disabled={
                   this.state.header.length < 3 || this.state.header.length > 21
                 }
-                onClick={this.addCandidate}
+                type="submit"
               >
-                Add
+                Add Candidate
               </button>
             </form>
           </div>
-        </div>
-        {loadAdded(this.state.candidates)}
-      </>
-    );
-  }
-}
-export function loadAdded(candidates) {
-  const renderAdded = (candidate) => {
-    return (
-      <>
-        <div className="container-list success">
-          <div
-            style={{
-              maxHeight: "21px",
-              overflow: "auto",
-            }}
-          >
-            {candidate.id}. <strong>{candidate.header}</strong>:{" "}
-            {candidate.slogan}
+
+          <div className="card candidate-list">
+            <h3>Candidate List</h3>
+            {this.state.candidates.length < 1 ? (
+              <div className="no-candidates">No candidates added yet.</div>
+            ) : (
+              <ul>
+                {this.state.candidates.map((candidate, idx) => (
+                  <li key={idx}>
+                    <span className="candidate-id">{candidate.id}.</span>{" "}
+                    <strong>{candidate.header}</strong> — {candidate.slogan}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </>
     );
-  };
-  return (
-    <div className="container-main" style={{ borderTop: "1px solid" }}>
-      <div className="container-item info">
-        <center>Candidates List</center>
-      </div>
-      {candidates.length < 1 ? (
-        <div className="container-item alert">
-          <center>No candidates added.</center>
-        </div>
-      ) : (
-        <div
-          className="container-item"
-          style={{
-            display: "block",
-            backgroundColor: "#DDFFFF",
-          }}
-        >
-          {candidates.map(renderAdded)}
-        </div>
-      )}
-    </div>
-  );
+  }
 }
