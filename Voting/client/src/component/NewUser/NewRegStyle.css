@@ -14,7 +14,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;  /* aligns to top instead of center */
-  min-height: 100vh;
+  height: 190vh;
   padding: 60px 0;          /* adds top & bottom spacing */
 }
 

@@ -99,6 +99,25 @@ export default class Registration extends Component {
       const voter = await this.state.ElectionInstance.methods
         .voterDetails(this.state.account)
         .call();
+
+      const email = localStorage.getItem("adminEmail");
+      if (email) {
+        try {
+          const response = await fetch(`http://127.0.0.1:5001/api/admin/${email}`);
+          const data = await response.json();
+
+          if (response.ok) {
+            this.setState({
+              voterName: data.name,
+              voterPhone: data.phoneNumber,
+            });
+          } else {
+            console.error('Failed to fetch user details:', data.message);
+          }
+        } catch (error) {
+          console.error('Error fetching user from DB:', error);
+        }
+      }
       this.setState({
         currentVoter: {
           address: voter.voterAddress,
@@ -189,7 +208,7 @@ export default class Registration extends Component {
                     type="text"
                     placeholder="Enter your name"
                     value={this.state.voterName}
-                    onChange={this.updateVoterName}
+                    readOnly
                   />
                 </label>
 
@@ -200,9 +219,10 @@ export default class Registration extends Component {
                     type="number"
                     placeholder="e.g. 9876543210"
                     value={this.state.voterPhone}
-                    onChange={this.updateVoterPhone}
+                    readOnly
                   />
                 </label>
+
 
                 <div className="note">
                   <strong style={{ color: "tomato" }}>Note:</strong> <br />
@@ -211,18 +231,17 @@ export default class Registration extends Component {
                   number doesn’t match their record.
                 </div>
 
-                <button
-                  className="btn-add"
-                  disabled={
-                    this.state.voterPhone.length !== 10 ||
-                    this.state.currentVoter.isVerified
-                  }
-                  onClick={this.registerAsVoter}
-                >
-                  {this.state.currentVoter.isRegistered
-                    ? "Update Details"
-                    : "Register"}
-                </button>
+                {!this.state.currentVoter.isRegistered && (
+                  <button
+                    className="btn-add"
+                    disabled={this.state.voterPhone.length !== 10}
+                    onClick={this.registerAsVoter}
+                  >
+                    Register
+                  </button>
+                )}
+
+
               </form>
             </div>
 
