@@ -34,6 +34,11 @@ export default class Voting extends Component {
         isVerified: false,
         isRegistered: false,
       },
+      // OTP Modal States
+      showOTPModal: false,
+      enteredOTP: "",
+      otpSessionId: "",
+      selectedCandidate: null,
     };
   }
 
@@ -65,16 +70,19 @@ export default class Voting extends Component {
       const end = await instance.methods.getEnd().call();
       this.setState({ isElStarted: start, isElEnded: end });
 
+      // Load all candidates
+      const candidates = [];
       for (let i = 0; i < candidateCount; i++) {
         const candidate = await instance.methods.candidateDetails(i).call();
-        this.state.candidates.push({
+        candidates.push({
           id: candidate.candidateId,
           header: candidate.header,
           slogan: candidate.slogan,
         });
       }
-      this.setState({ candidates: this.state.candidates });
+      this.setState({ candidates });
 
+      // Current voter info
       const voter = await instance.methods.voterDetails(accounts[0]).call();
       this.setState({
         currentVoter: {
@@ -95,19 +103,96 @@ export default class Voting extends Component {
     }
   };
 
-  renderCandidates = (candidate) => {
-    const castVote = async (id) => {
-      await this.state.ElectionInstance.methods
-        .vote(id)
-        .send({ from: this.state.account, gas: 1000000 });
-      window.location.reload();
-    };
+  // ✅ Blockchain Voting Function
+  castVote = async (id) => {
+    await this.state.ElectionInstance.methods
+      .vote(id)
+      .send({ from: this.state.account, gas: 1000000 });
+    window.location.reload();
+  };
 
-    const confirmVote = (id, header) => {
-      const r = window.confirm(
-        `Vote for ${header} (ID: ${id}).\nAre you sure?`
+  // ✅ Verify OTP and Vote
+// ✅ Verify OTP and Vote
+verifyOTPAndVote = async () => {
+  const { enteredOTP, otpSessionId, selectedCandidate } = this.state;
+  if (!enteredOTP) {
+    alert("Please enter the OTP.");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: otpSessionId,
+        otp: enteredOTP,
+      }),
+    });
+    const data = await res.json();
+
+    if (data.verified) {
+      alert("✅ OTP verified successfully! Your vote will be recorded.");
+
+      // Cast the vote on blockchain
+      await this.state.ElectionInstance.methods
+        .vote(selectedCandidate.id)
+        .send({ from: this.state.account, gas: 1000000 });
+
+      // ✅ Update voter state instantly (no reload needed)
+      this.setState((prev) => ({
+        showOTPModal: false,
+        enteredOTP: "",
+        currentVoter: { ...prev.currentVoter, hasVoted: true },
+      }));
+
+      alert("🎉 Vote recorded successfully!");
+    } else {
+      alert("❌ Invalid or expired OTP. Please try again.");
+    }
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    alert("An error occurred during OTP verification.");
+  }
+};
+
+
+  // ✅ Confirm Vote + Send OTP
+  renderCandidates = (candidate) => {
+    const confirmVote = async (id, header) => {
+      const phone = this.state.currentVoter.phone;
+
+      if (!phone) {
+        alert("No phone number registered for this voter.");
+        return;
+      }
+
+      const confirm = window.confirm(
+        `Vote for ${header} (ID: ${id})?\nA verification OTP will be sent to your registered number (${phone}).`
       );
-      if (r) castVote(id);
+      if (!confirm) return;
+
+      try {
+        const res = await fetch("http://127.0.0.1:5001/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phoneNumber: phone }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          this.setState({
+            showOTPModal: true,
+            otpSessionId: data.sessionId,
+            selectedCandidate: { id, header },
+          });
+        } else {
+          alert(data.message || "Failed to send OTP. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error sending OTP:", error);
+        alert("An error occurred while sending OTP.");
+      }
     };
 
     return (
@@ -184,19 +269,23 @@ export default class Voting extends Component {
                 )}
               </div>
 
-              <div className="card candidate-list-card">
-                <h3>Candidates</h3>
-                <small className="total-voters-text">
-                  Total Candidates: {this.state.candidates.length}
-                </small>
-                {this.state.candidates.length < 1 ? (
-                  <div className="attention-card">
-                    <p>No candidates added yet.</p>
-                  </div>
-                ) : (
-                  this.state.candidates.map(this.renderCandidates)
-                )}
-              </div>
+              {/* ✅ Show candidate list only if user hasn’t voted yet */}
+              {!this.state.currentVoter.hasVoted && (
+                <div className="card candidate-list-card">
+                  <h3>Candidates</h3>
+                  <small className="total-voters-text">
+                    Total Candidates: {this.state.candidates.length}
+                  </small>
+                  {this.state.candidates.length < 1 ? (
+                    <div className="attention-card">
+                      <p>No candidates added yet.</p>
+                    </div>
+                  ) : (
+                    this.state.candidates.map(this.renderCandidates)
+                  )}
+                </div>
+              )}
+
             </>
           ) : (
             this.state.isElEnded && (
@@ -209,6 +298,44 @@ export default class Voting extends Component {
             )
           )}
         </div>
+
+        {/* ✅ OTP Modal */}
+        {this.state.showOTPModal && (
+          <div className="otp-modal-overlay">
+            <div className="otp-modal">
+              <h3>Verify Your Identity</h3>
+              <p>An OTP has been sent to your registered phone number.</p>
+
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                value={this.state.enteredOTP}
+                onChange={(e) =>
+                  this.setState({ enteredOTP: e.target.value })
+                }
+                className="otp-input"
+                maxLength="6"
+              />
+
+              <div className="otp-modal-buttons">
+                <button
+                  onClick={this.verifyOTPAndVote}
+                  className="btn-primary"
+                >
+                  Verify & Vote
+                </button>
+                <button
+                  onClick={() =>
+                    this.setState({ showOTPModal: false, enteredOTP: "" })
+                  }
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     );
   }

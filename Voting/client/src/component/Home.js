@@ -122,6 +122,7 @@ export default class Home extends Component {
           organizationTitle: electionDetails.organizationTitle,
         },
       });
+      await this.fetchAdminDetails();
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -130,6 +131,33 @@ export default class Home extends Component {
       console.error(error);
     }
   };
+
+
+  fetchAdminDetails = async () => {
+    try {
+      const email = localStorage.getItem("adminEmail");
+      if (!email) return;
+
+      const response = await fetch(`http://127.0.0.1:5001/api/admin/${email}`);
+      const data = await response.json();
+      // console.log("Fetched admin data:", data);
+
+      this.setState({
+        adminDetails: {
+          adminFName: data.name.split(" ")[0] || "",
+          adminLName: data.name.split(" ")[1] || "",
+          adminEmail: data.officialEmail,
+          adminTitle: ""
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching admin details:", error);
+    }
+  };
+
+
+
+
   // end election
   endElection = async () => {
     await this.state.ElectionInstance.methods
@@ -139,17 +167,39 @@ export default class Home extends Component {
   };
   // register and start election
   registerElection = async (data) => {
-    await this.state.ElectionInstance.methods
-      .setElectionDetails(
-        data.adminFName.toLowerCase() + " " + data.adminLName.toLowerCase(),
-        data.adminEmail.toLowerCase(),
-        data.adminTitle.toLowerCase(),
-        data.electionTitle.toLowerCase(),
-        data.organizationTitle.toLowerCase()
-      )
-      .send({ from: this.state.account, gas: 1000000 });
-    window.location.reload();
+    try {
+      const adminFullName =
+        (this.state.adminDetails?.adminFName || "") +
+        " " +
+        (this.state.adminDetails?.adminLName || "");
+
+      const adminEmail = this.state.adminDetails?.adminEmail || "";
+      const adminTitle = data.adminTitle?.toLowerCase() || "admin";
+      const electionTitle = data.electionTitle?.toLowerCase() || "";
+      const organizationTitle = data.organizationTitle?.toLowerCase() || "";
+
+      if (!adminEmail || !electionTitle || !organizationTitle) {
+        alert("Please ensure all required fields are filled in!");
+        return;
+      }
+
+      await this.state.ElectionInstance.methods
+        .setElectionDetails(
+          adminFullName.toLowerCase(),
+          adminEmail.toLowerCase(),
+          adminTitle,
+          electionTitle,
+          organizationTitle
+        )
+        .send({ from: this.state.account, gas: 1000000 });
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Error during election setup:", error);
+      alert("Failed to register election. Check console for details.");
+    }
   };
+
 
   render() {
     if (!this.state.web3) {
@@ -237,39 +287,29 @@ export default class Home extends Component {
                     <div>
                       <label className="label-home">
                         Full Name{" "}
-                        {errors.adminFName && <EMsg msg="*required" />}
                         <input
                           className="input-home"
                           type="text"
                           placeholder="First Name"
-                          {...register("adminFName", {
-                            required: true,
-                          })}
+                          value={this.state.adminDetails?.adminFName || ""}
+                          readOnly
                         />
                         <input
                           className="input-home"
                           type="text"
                           placeholder="Last Name"
-                          {...register("adminLName")}
+                          value={this.state.adminDetails?.adminLName || ""}
+                          readOnly
                         />
                       </label>
 
                       <label className="label-home">
-                        Email{" "}
-                        {errors.adminEmail && (
-                          <EMsg msg={errors.adminEmail.message} />
-                        )}
+                        Email
                         <input
                           className="input-home"
-                          placeholder="eg. you@example.com"
-                          name="adminEmail"
-                          {...register("adminEmail", {
-                            required: "*Required",
-                            pattern: {
-                              value: /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/, // email validation using RegExp
-                              message: "*Invalid",
-                            },
-                          })}
+                          type="email"
+                          value={this.state.adminDetails?.adminEmail || ""}
+                          readOnly
                         />
                       </label>
 
@@ -279,12 +319,14 @@ export default class Home extends Component {
                         <input
                           className="input-home"
                           type="text"
-                          placeholder="eg. HR Head "
+                          placeholder="eg. HR Head"
+                          defaultValue={this.state.adminDetails?.adminTitle || ""}
                           {...register("adminTitle", {
                             required: true,
                           })}
                         />
                       </label>
+
                     </div>
                   </div>
                 </div>

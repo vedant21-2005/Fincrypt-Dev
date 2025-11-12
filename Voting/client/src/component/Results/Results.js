@@ -111,6 +111,7 @@ export default class Result extends Component {
             isElEnded && (
               <div className="card results-card">
                 {displayResults(candidates)}
+
               </div>
             )
           )}
@@ -126,10 +127,10 @@ function displayWinner(candidates) {
     let maxVote = 0;
     let winners = [];
     for (let c of candidates) {
-      if (c.voteCount > maxVote) {
-        maxVote = c.voteCount;
+      if (parseInt(c.voteCount) > maxVote) {
+        maxVote = parseInt(c.voteCount);
         winners = [c];
-      } else if (c.voteCount === maxVote) {
+      } else if (parseInt(c.voteCount) === maxVote) {
         winners.push(c);
       }
     }
